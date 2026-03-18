@@ -17,17 +17,8 @@
       --t1: #EDE9E0; --t2: #9C9488; --t3: #504E4A;
     }
     html, body { height: 100%; background: var(--bg0); color: var(--t1); overflow: hidden; font-family: 'DM Sans', sans-serif; }
-    body::before {
-      content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background:
-        radial-gradient(ellipse 60% 45% at 15% 8%, rgba(201,168,76,0.07) 0%, transparent 65%),
-        radial-gradient(ellipse 50% 60% at 88% 94%, rgba(58,123,213,0.06) 0%, transparent 65%);
-    }
-    body::after {
-      content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 44px 44px;
-    }
+    body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse 60% 45% at 15% 8%, rgba(201,168,76,0.07) 0%, transparent 65%), radial-gradient(ellipse 50% 60% at 88% 94%, rgba(58,123,213,0.06) 0%, transparent 65%); }
+    body::after { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 44px 44px; }
     .shell { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100vh; max-width: 860px; margin: 0 auto; }
     .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 22px; height: 60px; flex-shrink: 0; border-bottom: 1px solid var(--bdr); background: rgba(7,11,17,0.88); backdrop-filter: blur(18px); }
     .brand { display: flex; align-items: center; gap: 12px; }
@@ -119,7 +110,6 @@
       </button>
     </div>
   </div>
-
   <div class="prov-drop" id="provDrop">
     <div class="prov-head">Select province / territory</div>
     <div class="prov-item active" onclick="setProv('Ontario','ON','🏠')"><span class="pi">🏠</span>Ontario</div>
@@ -136,10 +126,8 @@
     <div class="prov-item" onclick="setProv('Nunavut','NU','🌌')"><span class="pi">🌌</span>Nunavut</div>
     <div class="prov-item" onclick="setProv('Yukon','YT','🐺')"><span class="pi">🐺</span>Yukon</div>
   </div>
-
   <div class="msgs" id="msgs"></div>
   <div class="suggs" id="suggs"></div>
-
   <div class="input-area">
     <div class="input-row">
       <textarea id="ta" rows="1" placeholder="Ask any Canadian tax question — personal, corporate, estate, GST/HST…" onkeydown="handleKey(event)" oninput="grow(this)"></textarea>
@@ -153,127 +141,68 @@
   </div>
   <div class="disclaimer">TaxMint Pro provides general Canadian tax information. For complex filings, consult a licensed CPA or tax lawyer.</div>
 </div>
-
 <script>
-  let hist = [], province = 'Ontario', provCode = 'ON', busy = false;
+  const KEY = 'AIzaSyAt3TIFSMO24fTo9Zk1bZznZYe3WPCqI3M';
+  const API = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + KEY;
+  const SYS = `You are TaxMint Pro, a senior Canadian tax advisor and CPA with 25+ years of experience. You have encyclopedic knowledge of the Income Tax Act (Canada), all 13 provincial/territorial tax laws, CRA practices, and every major tax minimization strategy. Give expert, direct, quantified advice like a Bay Street tax partner. Always follow this structure: 1. Quick Answer 2. Applicable Law (ITA section) 3. How It Works (with numbers) 4. Planning Strategies (conservative/moderate/aggressive) 5. Provincial Note 6. CRA Risk Flag 7. Next Steps. Cover: T1/T2/T3, GST/HST, LCGE $1.25M, income splitting, TOSI, CDA, RDTOH, SBD, PRE, RRSP/TFSA/FHSA, estate planning, cross-border, Quebec dual-filing.`;
 
-  const SUGG = [
-    "Self-employed in Ontario, $220K — optimal structure?",
-    "My CCPC has $600K retained earnings — best extraction?",
-    "Income split with spouse in Alberta — what are my options?",
-    "Capital Gains Exemption for selling my business — explain",
-    "TFSA vs RRSP vs FHSA — which to prioritize in 2025?",
-    "What triggers a CRA rental property audit?",
-    "How does the Capital Dividend Account work?",
-    "Prescribed rate loan strategy — how to set it up?",
-  ];
+  let hist=[], province='Ontario', provCode='ON', busy=false;
+  const SUGG=['Self-employed in Ontario, $220K — optimal structure?','My CCPC has $600K retained earnings — best extraction?','Income split with spouse in Alberta — options?','Capital Gains Exemption for selling my business','TFSA vs RRSP vs FHSA — which to prioritize 2025?','What triggers a CRA rental property audit?'];
 
-  function init() {
+  function init(){
     showSugg();
-    const wrap = document.getElementById('msgs');
-    const r = document.createElement('div');
-    r.className = 'msg ai';
-    r.innerHTML = `<div class="av ai">🍁</div><div>
-      <div class="welcome">
-        <div class="wc-eyebrow">Powered by Google Gemini · Always Free</div>
-        <div class="wc-title">Welcome to <em>TaxMint Pro</em></div>
-        <div class="wc-body">Your expert Canadian tax advisor — covering <strong>federal ITA, all 13 provinces & territories</strong>, CRA practices, and 50+ proven tax minimization strategies.<br><br>Select your <strong>province</strong> top-right and ask anything. No sign-up. No cost. Ever.</div>
-        <div class="chips">
-          <span class="chip">Personal T1</span><span class="chip">Corporate T2</span><span class="chip">Trust T3</span>
-          <span class="chip">GST / HST</span><span class="chip">Estate Planning</span><span class="chip">Income Splitting</span>
-          <span class="chip">Cross-Border</span><span class="chip">All 13 Provinces</span>
-        </div>
-      </div></div>`;
-    wrap.appendChild(r);
+    const w=document.getElementById('msgs'), r=document.createElement('div');
+    r.className='msg ai';
+    r.innerHTML=`<div class="av ai">🍁</div><div><div class="welcome"><div class="wc-eyebrow">Powered by Google Gemini · Always Free</div><div class="wc-title">Welcome to <em>TaxMint Pro</em></div><div class="wc-body">Your expert Canadian tax advisor — covering <strong>federal ITA, all 13 provinces & territories</strong>, CRA practices, and 50+ proven tax minimization strategies.<br><br>Select your <strong>province</strong> top-right and ask anything. No sign-up. No cost. Ever.</div><div class="chips"><span class="chip">Personal T1</span><span class="chip">Corporate T2</span><span class="chip">Trust T3</span><span class="chip">GST / HST</span><span class="chip">Estate Planning</span><span class="chip">Income Splitting</span><span class="chip">Cross-Border</span><span class="chip">All 13 Provinces</span></div></div></div>`;
+    w.appendChild(r);
   }
 
-  function showSugg() {
-    document.getElementById('suggs').innerHTML = SUGG.slice(0,4)
-      .map(s=>`<button class="sugg" onclick="useSugg(this.textContent)">${s}</button>`).join('');
-  }
-
+  function showSugg(){document.getElementById('suggs').innerHTML=SUGG.slice(0,4).map(s=>`<button class="sugg" onclick="useSugg(this.textContent)">${s}</button>`).join('');}
   function useSugg(t){document.getElementById('ta').value=t;send();}
-
   function toggleDrop(){document.getElementById('provDrop').classList.toggle('open');}
-  function setProv(name,code,flag){
-    province=name; provCode=code;
-    document.getElementById('plabel').textContent=name;
-    document.getElementById('pflag').textContent=flag;
-    document.querySelectorAll('.prov-item').forEach(e=>e.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-    document.getElementById('provDrop').classList.remove('open');
-  }
-  document.addEventListener('click',e=>{
-    if(!e.target.closest('#provDrop')&&!e.target.closest('#provBtn'))
-      document.getElementById('provDrop').classList.remove('open');
-  });
+  function setProv(n,c,f){province=n;provCode=c;document.getElementById('plabel').textContent=n;document.getElementById('pflag').textContent=f;document.querySelectorAll('.prov-item').forEach(e=>e.classList.remove('active'));event.currentTarget.classList.add('active');document.getElementById('provDrop').classList.remove('open');}
+  document.addEventListener('click',e=>{if(!e.target.closest('#provDrop')&&!e.target.closest('#provBtn'))document.getElementById('provDrop').classList.remove('open');});
 
   function addMsg(role,text){
-    const wrap=document.getElementById('msgs');
-    const r=document.createElement('div'); r.className=`msg ${role}`;
-    const av=document.createElement('div'); av.className=`av ${role}`; av.textContent=role==='ai'?'🍁':'You';
-    const bub=document.createElement('div'); bub.className='bubble'; bub.innerHTML=fmt(text);
-    r.appendChild(av); r.appendChild(bub); wrap.appendChild(r);
-    wrap.scrollTop=wrap.scrollHeight;
+    const w=document.getElementById('msgs'),r=document.createElement('div');r.className=`msg ${role}`;
+    const av=document.createElement('div');av.className=`av ${role}`;av.textContent=role==='ai'?'🍁':'You';
+    const b=document.createElement('div');b.className='bubble';b.innerHTML=fmt(text);
+    r.appendChild(av);r.appendChild(b);w.appendChild(r);w.scrollTop=w.scrollHeight;
   }
 
   function fmt(t){
-    return t
-      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-      .replace(/^#{1,3}\s(.+)$/gm,'<div class="sh">$1</div>')
-      .replace(/`([^`]+)`/g,'<code>$1</code>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
-      .replace(/^[•\-\*]\s(.+)$/gm,'<li>$1</li>')
-      .replace(/^\d+\.\s(.+)$/gm,'<li>$1</li>')
-      .replace(/(<li>[\s\S]*?<\/li>)+/g,m=>`<ul>${m}</ul>`)
-      .split('\n\n').map(p=>p.trim()?(p.startsWith('<')?p:`<p>${p}</p>`):'').join('');
+    return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,3}\s(.+)$/gm,'<div class="sh">$1</div>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>').replace(/^[•\-\*]\s(.+)$/gm,'<li>$1</li>').replace(/^\d+\.\s(.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)+/g,m=>`<ul>${m}</ul>`).split('\n\n').map(p=>p.trim()?(p.startsWith('<')?p:`<p>${p}</p>`):'').join('');
   }
 
-  function showTyping(){
-    const wrap=document.getElementById('msgs');
-    const r=document.createElement('div'); r.className='typer'; r.id='typer';
-    r.innerHTML=`<div class="av ai">🍁</div><div class="tdots"><div class="td"></div><div class="td"></div><div class="td"></div></div>`;
-    wrap.appendChild(r); wrap.scrollTop=wrap.scrollHeight;
-  }
+  function showTyping(){const w=document.getElementById('msgs'),r=document.createElement('div');r.className='typer';r.id='typer';r.innerHTML=`<div class="av ai">🍁</div><div class="tdots"><div class="td"></div><div class="td"></div><div class="td"></div></div>`;w.appendChild(r);w.scrollTop=w.scrollHeight;}
   function removeTyping(){const t=document.getElementById('typer');if(t)t.remove();}
 
   async function send(){
-    const ta=document.getElementById('ta');
-    const txt=ta.value.trim();
+    const ta=document.getElementById('ta'),txt=ta.value.trim();
     if(!txt||busy)return;
-    ta.value=''; grow(ta);
+    ta.value='';grow(ta);
     document.getElementById('suggs').innerHTML='';
     addMsg('user',txt);
-    hist.push({role:'user', content:txt});
-    busy=true; document.getElementById('sendBtn').disabled=true;
+    hist.push({role:'user',parts:[{text:`[Province: ${province} (${provCode})] ${txt}`}]});
+    busy=true;document.getElementById('sendBtn').disabled=true;
     showTyping();
     try {
-      const res = await fetch('/api/chat',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({messages:hist, province:`${province} (${provCode})`})
-      });
-      const data = await res.json();
+      const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:SYS}]},contents:hist,generationConfig:{maxOutputTokens:1500,temperature:0.4}})});
+      const data=await res.json();
       removeTyping();
-      if(data.error){
-        addMsg('ai',`⚠️ **Error:** ${data.error}`);
-        hist.pop();
-      } else {
-        hist.push({role:'assistant',content:data.reply});
-        addMsg('ai',data.reply);
+      if(data.error){addMsg('ai',`⚠️ **Error:** ${data.error.message}`);hist.pop();}
+      else{
+        const reply=data?.candidates?.[0]?.content?.parts?.[0]?.text||'No response. Please try again.';
+        hist.push({role:'model',parts:[{text:reply}]});
+        addMsg('ai',reply);
         if(hist.length>24)hist=hist.slice(-24);
       }
-    } catch(e){
-      removeTyping();
-      addMsg('ai',`⚠️ **Error:** ${e.message}`);
-      hist.pop();
-    }
-    busy=false; document.getElementById('sendBtn').disabled=false;
+    }catch(e){removeTyping();addMsg('ai',`⚠️ **Error:** ${e.message}`);hist.pop();}
+    busy=false;document.getElementById('sendBtn').disabled=false;
   }
 
   function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
   function grow(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
-
   init();
 </script>
 </body>
