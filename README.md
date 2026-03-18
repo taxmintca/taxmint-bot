@@ -1,71 +1,115 @@
-<a href="https://chat.vercel.ai/">
-  <img alt="Chatbot" src="app/(chat)/opengraph-image.png">
-  <h1 align="center">Chatbot</h1>
-</a>
+# TaxMint Pro — FREE Edition (Google Gemini)
+## Deploy in 10 minutes. $0 forever. No credit card needed.
 
-<p align="center">
-    Chatbot (formerly AI Chatbot) is a free, open-source template built with Next.js and the AI SDK that helps you quickly build powerful chatbot applications.
-</p>
+---
 
-<p align="center">
-  <a href="https://chatbot.dev"><strong>Read Docs</strong></a> ·
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#model-providers"><strong>Model Providers</strong></a> ·
-  <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
-  <a href="#running-locally"><strong>Running locally</strong></a>
-</p>
-<br/>
-
-## Features
-
-- [Next.js](https://nextjs.org) App Router
-  - Advanced routing for seamless navigation and performance
-  - React Server Components (RSCs) and Server Actions for server-side rendering and increased performance
-- [AI SDK](https://ai-sdk.dev/docs/introduction)
-  - Unified API for generating text, structured objects, and tool calls with LLMs
-  - Hooks for building dynamic chat and generative user interfaces
-  - Supports OpenAI, Anthropic, Google, xAI, and other model providers via AI Gateway
-- [shadcn/ui](https://ui.shadcn.com)
-  - Styling with [Tailwind CSS](https://tailwindcss.com)
-  - Component primitives from [Radix UI](https://radix-ui.com) for accessibility and flexibility
-- Data Persistence
-  - [Neon Serverless Postgres](https://vercel.com/marketplace/neon) for saving chat history and user data
-  - [Vercel Blob](https://vercel.com/storage/blob) for efficient file storage
-- [Auth.js](https://authjs.dev)
-  - Simple and secure authentication
-
-## Model Providers
-
-This template uses the [Vercel AI Gateway](https://vercel.com/docs/ai-gateway) to access multiple AI models through a unified interface. The default model is [OpenAI](https://openai.com) GPT-4.1 Mini, with support for Anthropic, Google, and xAI models.
-
-### AI Gateway Authentication
-
-**For Vercel deployments**: Authentication is handled automatically via OIDC tokens.
-
-**For non-Vercel deployments**: You need to provide an AI Gateway API key by setting the `AI_GATEWAY_API_KEY` environment variable in your `.env.local` file.
-
-With the [AI SDK](https://ai-sdk.dev/docs/introduction), you can also switch to direct LLM providers like [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://ai-sdk.dev/providers/ai-sdk-providers) with just a few lines of code.
-
-## Deploy Your Own
-
-You can deploy your own version of Chatbot to Vercel with one click:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/templates/next.js/chatbot)
-
-## Running locally
-
-You will need to use the environment variables [defined in `.env.example`](.env.example) to run Chatbot. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.
-
-> Note: You should not commit your `.env` file or it will expose secrets that will allow others to control access to your various AI and authentication provider accounts.
-
-1. Install Vercel CLI: `npm i -g vercel`
-2. Link local instance with Vercel and GitHub accounts (creates `.vercel` directory): `vercel link`
-3. Download your environment variables: `vercel env pull`
-
-```bash
-pnpm install
-pnpm db:migrate # Setup database or apply latest database changes
-pnpm dev
+## Files in this package
+```
+taxmint-gemini/
+├── index.html      ← Full premium TaxMint Pro UI
+├── api/chat.js     ← Backend (keeps your Gemini key secret)
+├── vercel.json     ← Vercel deployment config
+└── README.md       ← This file
 ```
 
-Your app template should now be running on [localhost:3000](http://localhost:3000).
+---
+
+## Step 1 — Get your FREE Gemini API key (2 minutes)
+
+1. Go to: https://aistudio.google.com/app/apikey
+2. Sign in with your Google account
+3. Click **"Create API Key"**
+4. Copy the key — it starts with `AIza...`
+
+✅ No credit card. No billing. Free forever on the free tier.
+   → 1,500 requests/day = ~50 clients asking 30 questions each, every day
+
+---
+
+## Step 2 — Deploy to Vercel (5 minutes)
+
+### Option A: Drag & Drop (easiest)
+1. Go to https://vercel.com and sign up free (use your Google account)
+2. Click **"Add New Project"**
+3. Choose **"Import Third-Party Git Repository"** or just drag the folder
+4. Click **Deploy**
+
+### Option B: GitHub (best for updates)
+1. Create a free GitHub account at https://github.com
+2. Create a new repository called `taxmint-pro`
+3. Upload all 4 files from this folder
+4. Go to https://vercel.com → Import from GitHub → select your repo → Deploy
+
+### Option C: Vercel CLI (fastest)
+```bash
+npm install -g vercel
+cd taxmint-gemini
+vercel
+# Follow prompts — done in 60 seconds
+```
+
+---
+
+## Step 3 — Add your API key (CRITICAL — do this or it won't work)
+
+1. In your Vercel project → click **Settings**
+2. Click **Environment Variables** in the left sidebar
+3. Click **Add New**:
+   - **Name:** `GEMINI_API_KEY`
+   - **Value:** `AIza...your-key-here...`
+   - **Environments:** check all three (Production, Preview, Development)
+4. Click **Save**
+5. Go to **Deployments** tab → find your latest deployment → click the **"..."** menu → **Redeploy**
+
+---
+
+## Step 4 — Share with clients
+
+Vercel gives you a URL like:
+```
+https://taxmint-pro-yourname.vercel.app
+```
+
+Share this with clients. They open it and chat — no sign-up, no payment, nothing.
+
+### Optional: Custom domain
+Want `taxmint.yourfirm.ca`?
+1. Buy a domain (~$12/year at namecheap.com or Google Domains)
+2. In Vercel → Settings → Domains → Add your domain
+3. Follow the DNS instructions (5 minutes)
+
+---
+
+## Free tier limits
+
+| Item | Free allowance |
+|------|----------------|
+| Vercel hosting | 100 GB/month bandwidth |
+| Gemini API requests | 1,500/day |
+| Gemini tokens | 1,000,000/day |
+| Cost | $0 |
+
+For most small-to-mid firms, the free tier is more than enough forever.
+
+---
+
+## Upgrading later
+
+If you ever need more capacity (e.g., 10,000+ requests/day), you can:
+- Switch to Gemini paid tier (~$0.075 per 1M tokens — extremely cheap)
+- Switch back to Anthropic Claude (better quality, small cost)
+
+Just change `GEMINI_API_KEY` to `ANTHROPIC_API_KEY` in Vercel and swap the `api/chat.js` file.
+
+---
+
+## Troubleshooting
+
+**"Server not configured" error:**
+→ You haven't added the GEMINI_API_KEY environment variable. Follow Step 3.
+
+**"No response from AI" error:**
+→ Check your Gemini key is correct. Test it at aistudio.google.com.
+
+**Blank page:**
+→ Check Vercel deployment logs (Deployments → click your deploy → View Logs)
